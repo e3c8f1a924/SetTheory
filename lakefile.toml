@@ -1,0 +1,10 @@
+name = "SetTheory"
+version = "0.1.0"
+defaultTargets = ["settheory"]
+
+[[lean_lib]]
+name = "SetTheory"
+
+[[lean_exe]]
+name = "settheory"
+root = "Main"

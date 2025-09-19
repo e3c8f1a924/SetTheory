@@ -7,6 +7,7 @@ axiom set_inhabited: Inhabited Set
 axiom set_in: Set → Set → Prop
 notation:100 lhs:101 " ∈ " rhs:101 => set_in lhs rhs
 notation:100 lhs:101 " ∉ " rhs:101 => ¬ set_in lhs rhs
+
 /- Axiom of Extensionality -/
 axiom set_eq_intro: ∀ {x y: Set}, (∀ (z: Set), z ∈ x ↔ z ∈ y) → x = y
 theorem set_eq_elim: ∀ {x y: Set}, x = y → (∀ (z: Set), z ∈ x ↔ z ∈ y) := by
@@ -172,8 +173,9 @@ theorem in_union_elim: ∀ {x y z: Set}, z ∈ x ∪ y → z ∈ x ∨ z ∈ y :
 /- Axiom of Infinity -/
 noncomputable def set_succ (x: Set) := x ∪ ⦃x⦄
 notation:125 sth:126 "⁺" => set_succ sth
-noncomputable def set_inductive (x: Set) := ∀ y: Set, y ∈ x → y⁺ ∈ x
-axiom axiom_of_infinity: ∃ x: Set, set_inductive x
+noncomputable def set_inductive (x: Set) := ∅ ∈ x ∧ ∀ y: Set, y ∈ x → y⁺ ∈ x
+axiom infinity_set_instance: Set
+axiom axiom_of_infinity: set_inductive infinity_set_instance
 
 /- Pairs -/
 noncomputable def pair (x y: Set) := ⦃(⦃x⦄), (⦃x, y⦄)⦄
@@ -265,5 +267,15 @@ theorem law_of_pair_right: ∀ (x y: Set), pair_right (⸨x, y⸩) = y := by
     . intro H3; apply in_unionset_intro y
       . apply in_singleset_intro; trivial
       . trivial
+
+/- Set Minus -/
+noncomputable def set_minus (x y: Set) := separate x (λ z: Set => z ∉ y)
+notation:110 a:111 "\\" b: 111  => set_minus a b
+theorem law_of_setminus: ∀ (x y z: Set), z ∈ x \ y ↔ z ∈ x ∧ z ∉ y := by
+  intro x y z; unfold set_minus; rewrite [law_of_separate]; trivial
+theorem in_setminus_intro: ∀ {x y z: Set}, z ∈ x → z ∉ y → z ∈ x \ y := by
+  intro x y z H1 H2; rewrite [law_of_setminus]; apply And.intro; trivial; trivial
+theorem in_setminus_elim: ∀ {x y z: Set}, z ∈ x \ y → z ∈ x ∧ z ∉ y := by
+  intro x y z H; rewrite [← law_of_setminus]; trivial
 
 end SetTheory

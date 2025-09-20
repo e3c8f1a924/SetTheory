@@ -33,5 +33,30 @@ theorem ω_pre: ∀ x: Set, x ∈ ω → x ≠ ∅ → ∃ y, y ∈ ω ∧ y⁺ 
     intro H'; let H'' := in_separate_elim H'
     apply H''.right; apply in_singleset_intro; trivial
   apply Hx3; apply Hx2; trivial
+theorem mathematical_induction_on_ω: ∀ (P: Set → Prop), P ∅ → (∀ x: Set, x ∈ ω → (P x → P (x⁺))) → ∀ x: Set, x ∈ ω → P x := by
+  intro P HP0 HPs
+  let ω' := separate ω P
+  let HIω': set_inductive ω' := by
+    apply And.intro
+    . apply in_separate_intro
+      . apply ω_inductive.left
+      . trivial
+    . intro y Hy; let ⟨Hy1, Hy2⟩ := in_separate_elim Hy
+      apply in_separate_intro
+      . apply ω_inductive.right; trivial
+      . apply HPs; trivial; trivial
+  let Hω: ω = ω' := by
+    apply set_eq_intro; intro z; apply Iff.intro
+    . unfold ω; rewrite [law_of_separate]; intro ⟨_, H1⟩
+      apply H1; apply HIω'
+    . intro H'; let H'' := in_separate_elim H'
+      apply H''.left
+  let Hω1 := set_eq_elim Hω
+  intro x; let Hωx := Hω1 x
+  rewrite [law_of_separate] at Hωx
+  simp at Hωx
+  trivial
+theorem by_mathematical_induction_on_ω: ∀ {P: Set → Prop}, P ∅ → (∀ x: Set, x ∈ ω → (P x → P (x⁺))) → ∀ x: Set, x ∈ ω → P x := by
+  apply mathematical_induction_on_ω
 
 end SetTheory

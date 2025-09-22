@@ -267,6 +267,16 @@ theorem law_of_pair_right: ∀ (x y: Set), pair_right (⸨x, y⸩) = y := by
     . intro H3; apply in_unionset_intro y
       . apply in_singleset_intro; trivial
       . trivial
+theorem pair_eq_iff: ∀ (a b c d: Set), ⸨a, b⸩ = ⸨c, d⸩ ↔ a = c ∧ b = d := by
+  intro a b c d; apply Iff.intro
+  . intro H; apply And.intro
+    . rewrite [← law_of_pair_left a b]; rewrite [H]; rewrite [law_of_pair_left]; trivial
+    . rewrite [← law_of_pair_right a b]; rewrite [H]; rewrite [law_of_pair_right]; trivial
+  . intro ⟨Hl, Hr⟩; simp [Hl, Hr]
+theorem pair_eq_intro: ∀ {a b c d: Set}, a = c → b = d → ⸨a, b⸩ = ⸨c, d⸩ := by
+  intro a b c d H1 H2; simp [H1, H2]
+theorem pair_eq_elim: ∀ {a b c d: Set}, ⸨a, b⸩ = ⸨c, d⸩ → a = c ∧ b = d := by
+  intro a b c d H; rewrite [← pair_eq_iff]; trivial
 
 /- Set Minus -/
 noncomputable def set_minus (x y: Set) := separate x (λ z: Set => z ∉ y)

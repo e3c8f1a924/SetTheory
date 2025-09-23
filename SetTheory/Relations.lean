@@ -67,20 +67,20 @@ theorem in_equivalence_relations_elim: ∀ {a R: Set}, R ∈ equivalence_relatio
   simp [law_of_equivalence_relations]
 
 /- Quotient Sets -/
-noncomputable def equivalence_class (R a: Set) := separate (transform R pair_right) (λ b => a ⟪R⟫ b)
-notation:130 "⟦ " R:131 "," a: 131 " ⟧" => equivalence_class R a
-theorem law_of_equivalence_class: ∀ (R a b: Set), b ∈ ⟦R, a⟧ ↔ a ⟪R⟫ b := by
-  intro R a b; unfold equivalence_class; apply Iff.intro
+noncomputable def relation_class (R a: Set) := separate (transform R pair_right) (λ b => a ⟪R⟫ b)
+notation:130 "⟦ " R:131 "," a: 131 " ⟧" => relation_class R a
+theorem law_of_relation_class: ∀ (R a b: Set), b ∈ ⟦R, a⟧ ↔ a ⟪R⟫ b := by
+  intro R a b; unfold relation_class; apply Iff.intro
   . intro H; let ⟨H1, H2⟩ := in_separate_elim H; apply H2
   . intro H; apply in_separate_intro;
     . unfold in_relation at H; apply in_transform_intro (⸨a, b⸩)
       . apply H
       . simp [law_of_pair_right]
     . trivial
-theorem in_equivalence_class_intro: ∀ {R a b: Set}, a ⟪R⟫ b → b ∈ ⟦R, a⟧ := by
-  intro R a b H; simp [law_of_equivalence_class, H]
-theorem in_equivalence_class_elim: ∀ {R a b: Set}, b ∈ ⟦R, a⟧ → a ⟪R⟫ b := by
-  intro R a b Hb; rewrite [← law_of_equivalence_class]; trivial
+theorem in_relation_class_intro: ∀ {R a b: Set}, a ⟪R⟫ b → b ∈ ⟦R, a⟧ := by
+  intro R a b H; simp [law_of_relation_class, H]
+theorem in_relation_class_elim: ∀ {R a b: Set}, b ∈ ⟦R, a⟧ → a ⟪R⟫ b := by
+  intro R a b Hb; rewrite [← law_of_relation_class]; trivial
 noncomputable def quotient_set (a R: Set) := transform a (λ x: Set => ⟦R, x⟧)
 notation:110 a:111 "/" b: 111  => quotient_set a b
 noncomputable def is_patrition (a b: Set) := a = ⋃ b ∧ (∀ (x y: Set), x ∈ b → y ∈ b → x ≠ y → x ∩ y = ∅)
@@ -92,10 +92,10 @@ theorem equivalence_relations_quitient_set_partition: ∀ (a R: Set), R ∈ equi
       . unfold quotient_set; apply in_transform_intro z
         . trivial
         . trivial
-      . apply in_equivalence_class_intro; apply HR2; trivial
+      . apply in_relation_class_intro; apply HR2; trivial
     . intro Hz; let ⟨k, Hk1, Hk2⟩ := in_unionset_elim Hz
       unfold quotient_set at Hk1; let ⟨t, Ht1, Ht2⟩ := in_transform_elim Hk1
-      rewrite [← Ht2] at Hk2; let Hk3 := in_equivalence_class_elim Hk2; let Hk4 := relation_elim Hk3
+      rewrite [← Ht2] at Hk2; let Hk3 := in_relation_class_elim Hk2; let Hk4 := relation_elim Hk3
       let HR5 := in_powerset_elim HR1; let Hk5 := HR5 _ Hk4
       let Hk6 := pair_in_cartesian_product_elim Hk5
       simp [Hk6]
@@ -107,11 +107,21 @@ theorem equivalence_relations_quitient_set_partition: ∀ (a R: Set), R ∈ equi
     rewrite [← Hzx2] at Hz1
     rewrite [← Hzy2] at Hz2
     rewrite [← Hzx2, ← Hzy2]; apply set_eq_intro
-    intro k; rewrite [law_of_equivalence_class]; rewrite [law_of_equivalence_class]
-    let Hz3 := in_equivalence_class_elim Hz1; let Hz4 := in_equivalence_class_elim Hz2
+    intro k; rewrite [law_of_relation_class]; rewrite [law_of_relation_class]
+    let Hz3 := in_relation_class_elim Hz1; let Hz4 := in_relation_class_elim Hz2
     let Hz5 := HR4 _ _ _ Hz3 (HR3 _ _ Hz4)
     apply Iff.intro
     . intro H1; apply (HR4 _ _ _ (HR3 _ _ Hz5)); trivial
     . intro H1; apply (HR4 _ _ _ Hz5); trivial
+theorem law_of_equivalence_class_eq: ∀ (a R x y: Set), R ∈ equivalence_relations a → x ∈ a → y ∈ a → (⟦R, x⟧ = ⟦R, y⟧ ↔ x ⟪R⟫ y) := by
+  intro a R x y HR Hx Hy; apply Iff.intro
+  . intro H1; let H2 := (set_eq_elim H1) y; rewrite [law_of_relation_class] at H2; rewrite [law_of_relation_class] at H2
+    let ⟨_, HR1, _, _⟩ := in_equivalence_relations_elim HR;
+    simp [HR1 _ Hy] at H2; trivial
+  . intro H1; apply set_eq_intro; intro z; rewrite [law_of_relation_class]
+    rewrite [law_of_relation_class]; let ⟨_, _, HR2, HR1⟩ := in_equivalence_relations_elim HR
+    apply Iff.intro
+    . intro Hxz; apply HR1 _ _ _ (HR2 _ _ H1) Hxz
+    . intro Hyz; apply HR1 _ _ _ H1; trivial
 
 end SetTheory

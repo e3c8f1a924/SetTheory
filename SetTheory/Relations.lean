@@ -54,4 +54,20 @@ theorem relation_constructor_intro: ∀ {a b: Set} {f: Set → Set → Prop} {x 
 theorem relation_constructor_elim: ∀ {a b: Set} {f: Set → Set → Prop} {x y: Set}, x ⟪relation_constructor a b f⟫ y → x ∈ a ∧ y ∈ b ∧ f x y := by
   intro a b f x y H; rewrite [← law_of_relation_constructor]; trivial
 
+/- Equivalence Relations -/
+noncomputable def relation_refl (a: Set) (R: Set) := ∀ x: Set, x ∈ a → x ⟪R⟫ x
+noncomputable def relation_symm (R: Set) := ∀ (x y: Set), x ⟪R⟫ y → y ⟪R⟫ x
+noncomputable def relation_trans (R: Set) := ∀ (x y z: Set), x ⟪R⟫ y → y ⟪R⟫ z → x ⟪R⟫ z
+noncomputable def equivalence_relations (a: Set) := separate (a × a) (λ x: Set => (relation_refl a x) ∧ relation_symm x ∧ relation_trans x)
+theorem law_of_equivalence_relations: ∀ (a R: Set), R ∈ equivalence_relations a ↔ R ∈ a × a ∧ relation_refl a R ∧ relation_symm R ∧ relation_trans R := by
+  intro a R; unfold equivalence_relations; rewrite [law_of_separate]; trivial
+theorem in_equivalence_relations_intro: ∀ {a R: Set}, R ∈ a × a → relation_refl a R → relation_symm R → relation_trans R → R ∈ equivalence_relations a := by
+  intro a R; rewrite [law_of_equivalence_relations]; intro H1 H2 H3 H4; simp [H1, H2, H3, H4]
+theorem in_equivalence_relations_elim: ∀ {a R: Set}, R ∈ equivalence_relations a → R ∈ a × a ∧ relation_refl a R ∧ relation_symm R ∧ relation_trans R := by
+  simp [law_of_equivalence_relations]
+
+/- Quotient Sets -/
+noncomputable def quotient_set (a R: Set) := transform a (λ x: Set => separate a (λ y: Set => x ⟪R⟫ y))
+notation:110 a:111 "/" b: 111  => quotient_set a b
+
 end SetTheory

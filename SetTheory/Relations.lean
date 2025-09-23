@@ -58,16 +58,60 @@ theorem relation_constructor_elim: ∀ {a b: Set} {f: Set → Set → Prop} {x y
 noncomputable def relation_refl (a: Set) (R: Set) := ∀ x: Set, x ∈ a → x ⟪R⟫ x
 noncomputable def relation_symm (R: Set) := ∀ (x y: Set), x ⟪R⟫ y → y ⟪R⟫ x
 noncomputable def relation_trans (R: Set) := ∀ (x y z: Set), x ⟪R⟫ y → y ⟪R⟫ z → x ⟪R⟫ z
-noncomputable def equivalence_relations (a: Set) := separate (a × a) (λ x: Set => (relation_refl a x) ∧ relation_symm x ∧ relation_trans x)
-theorem law_of_equivalence_relations: ∀ (a R: Set), R ∈ equivalence_relations a ↔ R ∈ a × a ∧ relation_refl a R ∧ relation_symm R ∧ relation_trans R := by
+noncomputable def equivalence_relations (a: Set) := separate (𝒫 (a × a)) (λ x: Set => (relation_refl a x) ∧ relation_symm x ∧ relation_trans x)
+theorem law_of_equivalence_relations: ∀ (a R: Set), R ∈ equivalence_relations a ↔ R ∈ 𝒫 (a × a) ∧ relation_refl a R ∧ relation_symm R ∧ relation_trans R := by
   intro a R; unfold equivalence_relations; rewrite [law_of_separate]; trivial
-theorem in_equivalence_relations_intro: ∀ {a R: Set}, R ∈ a × a → relation_refl a R → relation_symm R → relation_trans R → R ∈ equivalence_relations a := by
+theorem in_equivalence_relations_intro: ∀ {a R: Set}, R ∈ 𝒫 (a × a) → relation_refl a R → relation_symm R → relation_trans R → R ∈ equivalence_relations a := by
   intro a R; rewrite [law_of_equivalence_relations]; intro H1 H2 H3 H4; simp [H1, H2, H3, H4]
-theorem in_equivalence_relations_elim: ∀ {a R: Set}, R ∈ equivalence_relations a → R ∈ a × a ∧ relation_refl a R ∧ relation_symm R ∧ relation_trans R := by
+theorem in_equivalence_relations_elim: ∀ {a R: Set}, R ∈ equivalence_relations a → R ∈ 𝒫 (a × a) ∧ relation_refl a R ∧ relation_symm R ∧ relation_trans R := by
   simp [law_of_equivalence_relations]
 
 /- Quotient Sets -/
-noncomputable def quotient_set (a R: Set) := transform a (λ x: Set => separate a (λ y: Set => x ⟪R⟫ y))
+noncomputable def equivalence_class (R a: Set) := separate (transform R pair_right) (λ b => a ⟪R⟫ b)
+notation:130 "⟦ " R:131 "," a: 131 " ⟧" => equivalence_class R a
+theorem law_of_equivalence_class: ∀ (R a b: Set), b ∈ ⟦R, a⟧ ↔ a ⟪R⟫ b := by
+  intro R a b; unfold equivalence_class; apply Iff.intro
+  . intro H; let ⟨H1, H2⟩ := in_separate_elim H; apply H2
+  . intro H; apply in_separate_intro;
+    . unfold in_relation at H; apply in_transform_intro (⸨a, b⸩)
+      . apply H
+      . simp [law_of_pair_right]
+    . trivial
+theorem in_equivalence_class_intro: ∀ {R a b: Set}, a ⟪R⟫ b → b ∈ ⟦R, a⟧ := by
+  intro R a b H; simp [law_of_equivalence_class, H]
+theorem in_equivalence_class_elim: ∀ {R a b: Set}, b ∈ ⟦R, a⟧ → a ⟪R⟫ b := by
+  intro R a b Hb; rewrite [← law_of_equivalence_class]; trivial
+noncomputable def quotient_set (a R: Set) := transform a (λ x: Set => ⟦R, x⟧)
 notation:110 a:111 "/" b: 111  => quotient_set a b
+noncomputable def is_patrition (a b: Set) := a = ⋃ b ∧ (∀ (x y: Set), x ∈ b → y ∈ b → x ≠ y → x ∩ y = ∅)
+theorem equivalence_relations_quitient_set_partition: ∀ (a R: Set), R ∈ equivalence_relations a → is_patrition a (a / R) := by
+  intro a R HR; let ⟨HR1, HR2, HR3, HR4⟩ := in_equivalence_relations_elim HR
+  unfold is_patrition; apply And.intro
+  . apply set_eq_intro; intro z; apply Iff.intro
+    . intro Hz; apply in_unionset_intro (⟦R, z⟧)
+      . unfold quotient_set; apply in_transform_intro z
+        . trivial
+        . trivial
+      . apply in_equivalence_class_intro; apply HR2; trivial
+    . intro Hz; let ⟨k, Hk1, Hk2⟩ := in_unionset_elim Hz
+      unfold quotient_set at Hk1; let ⟨t, Ht1, Ht2⟩ := in_transform_elim Hk1
+      rewrite [← Ht2] at Hk2; let Hk3 := in_equivalence_class_elim Hk2; let Hk4 := relation_elim Hk3
+      let HR5 := in_powerset_elim HR1; let Hk5 := HR5 _ Hk4
+      let Hk6 := pair_in_cartesian_product_elim Hk5
+      simp [Hk6]
+  . intro x y Hx Hy Hn; apply set_eq_intro; apply byContradiction; intro Ht; simp at Ht
+    let ⟨z, Hz⟩ := Ht; simp [law_of_emptyset] at Hz; apply Hn; unfold quotient_set at Hx Hy
+    let ⟨zx, Hzx1, Hzx2⟩ := in_transform_elim Hx
+    let ⟨zy, Hzy1, Hzy2⟩ := in_transform_elim Hy
+    let ⟨Hz1, Hz2⟩ := in_intersect_elim Hz
+    rewrite [← Hzx2] at Hz1
+    rewrite [← Hzy2] at Hz2
+    rewrite [← Hzx2, ← Hzy2]; apply set_eq_intro
+    intro k; rewrite [law_of_equivalence_class]; rewrite [law_of_equivalence_class]
+    let Hz3 := in_equivalence_class_elim Hz1; let Hz4 := in_equivalence_class_elim Hz2
+    let Hz5 := HR4 _ _ _ Hz3 (HR3 _ _ Hz4)
+    apply Iff.intro
+    . intro H1; apply (HR4 _ _ _ (HR3 _ _ Hz5)); trivial
+    . intro H1; apply (HR4 _ _ _ Hz5); trivial
 
 end SetTheory

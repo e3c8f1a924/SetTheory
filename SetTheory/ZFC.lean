@@ -288,4 +288,15 @@ theorem in_setminus_intro: ∀ {x y z: Set}, z ∈ x → z ∉ y → z ∈ x \ y
 theorem in_setminus_elim: ∀ {x y z: Set}, z ∈ x \ y → z ∈ x ∧ z ∉ y := by
   intro x y z H; rewrite [← law_of_setminus]; trivial
 
+/- Binary Intersect -/
+noncomputable def intersect (a b: Set) := separate (a ∪ b) (λ x: Set => x ∈ a ∧ x ∈ b)
+notation:111 a:112 "∩" b: 112  => intersect a b
+theorem law_of_intersect: ∀ (a b c: Set), c ∈ a ∩ b ↔ c ∈ a ∧ c ∈ b := by
+  intro a b c; unfold intersect; rewrite [law_of_separate]; simp; intro H1 H2
+  apply in_union_intro; simp [H1, H2]
+theorem in_intersect_intro: ∀ {a b c: Set}, c ∈ a → c ∈ b → c ∈ a ∩ b := by
+  intro a b c Ha Hb; simp [law_of_intersect, Ha, Hb]
+theorem in_intersect_elim: ∀ {a b c: Set}, c ∈ a ∩ b → c ∈ a ∧ c ∈ b := by
+  intro a b c H; rewrite [← law_of_intersect]; trivial
+
 end SetTheory

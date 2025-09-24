@@ -167,4 +167,8 @@ theorem map_constructor_is_map: ∀ (a: Set) (F: Set → Set), is_map a (map_con
     let ⟨Hk3, Hk4⟩ := pair_eq_elim Hk2; rewrite [Hk3] at Hk4; rewrite [Hk4]; trivial
   . intro Hz; rewrite [Hz]; apply in_transform_intro x; repeat trivial
 
+/- Operations -/
+noncomputable def operation_set (a b c: Set) := (a × b) ⟶ c
+notation:112 a:113 "⟦" o: 113 "⟧" b:113 => o⸨(⸨a, b⸩)⸩
+
 end SetTheory

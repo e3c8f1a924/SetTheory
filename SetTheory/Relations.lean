@@ -129,17 +129,22 @@ theorem equivalence_class_eq_elim: ∀ (a: Set) {R x y: Set}, R ∈ equivalence_
   intro a R x y HR Hx Hy Hxy; rewrite [← law_of_equivalence_class_eq a R x y]; repeat trivial
 
 /- Mappings -/
-noncomputable def mapset (a b: Set) := separate (𝒫 (a × b)) (λ R => ∀ x, x ∈ a → (∃ y, y ∈ b ∧ ⟦R, x⟧ = ⦃y⦄))
+noncomputable def is_map (a f: Set) := ∀ x, x ∈ a → (∃ y, ⟦f, x⟧ = ⦃y⦄)
+noncomputable def mapset (a b: Set) := separate (𝒫 (a × b)) (λ R => is_map a R)
 notation:114 a:115 "⟶" b: 115  => mapset a b
 noncomputable def map_eval (f x: Set) := ⋃ ⟦f, x⟧
 notation:113 f:114 "⸨" x: 114 "⸩"  => map_eval f x
 theorem map_eval_in_codomain: ∀ (f a b x), f ∈ a ⟶ b → x ∈ a → f⸨x⸩ ∈ b := by
   intro f a b x Hf Hx; unfold map_eval; unfold mapset at Hf
-  let ⟨Hf1, Hf2⟩ := in_separate_elim Hf; let ⟨y, Hy1, Hy2⟩ := Hf2 x Hx
-  rewrite [Hy2]; rewrite [law_of_unionset_singleset]; trivial
+  let ⟨Hf1, Hf2⟩ := in_separate_elim Hf; let ⟨y, Hy2⟩ := Hf2 x Hx
+  rewrite [Hy2]; rewrite [law_of_unionset_singleset]
+  let Hy3 := set_eq_elim Hy2 y; simp [law_of_singleset, law_of_relation_class] at Hy3;
+  unfold in_relation at Hy3; let Hf3 := in_powerset_elim Hf1
+  let Hy4 := Hf3 _ Hy3; let Hy5 := pair_in_cartesian_product_elim Hy4;
+  apply Hy5.right
 theorem map_eval_in_map: ∀ (f a b x), f ∈ a ⟶ b → x ∈ a → x ⟪f⟫ (f⸨x⸩) := by
   intro f a b x Hf Hx; apply relation_intro; unfold mapset at Hf
-  let ⟨Hf1, Hf2⟩ := in_separate_elim Hf; let ⟨y, Hy1, Hy2⟩ := Hf2 x Hx
+  let ⟨Hf1, Hf2⟩ := in_separate_elim Hf; let ⟨y, Hy2⟩ := Hf2 x Hx
   unfold map_eval; rewrite [Hy2]; rewrite [law_of_unionset_singleset]
   let Hy3 := set_eq_elim Hy2 y; simp [law_of_singleset] at Hy3
   let Hy4 := in_relation_class_elim Hy3; unfold in_relation at Hy4; trivial
@@ -149,8 +154,17 @@ theorem law_of_map_eval: ∀ (f a b x y), f ∈ a ⟶ b → x ∈ a → (f⸨x�
   . intro Hxy; let Hr := in_relation_class_intro Hxy
     let Ht := map_eval_in_map f a b x Hf Hx; let Hxfx := in_relation_class_intro Ht
     unfold mapset at Hf; let ⟨Hf1, Hf2⟩ := in_separate_elim Hf;
-    let ⟨k, Hk1, Hk2⟩ := Hf2 x Hx
+    let ⟨k, Hk2⟩ := Hf2 x Hx
     rewrite [Hk2] at Hr Hxfx; let Hr1 := in_singleset_elim Hr; let Hxfx1 := in_singleset_elim Hxfx
     simp [Hxfx1, Hr1]
+noncomputable def map_constructor (a: Set) (F: Set → Set) := transform a (λ x: Set => ⸨x, F x⸩)
+theorem map_constructor_is_map: ∀ (a: Set) (F: Set → Set), is_map a (map_constructor a F) := by
+  intro a F; unfold map_constructor; unfold is_map
+  intro x Hx; exists (F x); apply set_eq_intro
+  intro z; rewrite [law_of_relation_class]; rewrite [law_of_singleset]
+  unfold in_relation; apply Iff.intro
+  . intro H; let ⟨k, Hk1, Hk2⟩ := in_transform_elim H
+    let ⟨Hk3, Hk4⟩ := pair_eq_elim Hk2; rewrite [Hk3] at Hk4; rewrite [Hk4]; trivial
+  . intro Hz; rewrite [Hz]; apply in_transform_intro x; repeat trivial
 
 end SetTheory

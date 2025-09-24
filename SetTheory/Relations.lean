@@ -123,5 +123,34 @@ theorem law_of_equivalence_class_eq: ∀ (a R x y: Set), R ∈ equivalence_relat
     apply Iff.intro
     . intro Hxz; apply HR1 _ _ _ (HR2 _ _ H1) Hxz
     . intro Hyz; apply HR1 _ _ _ H1; trivial
+theorem equivalence_class_eq_intro: ∀ (a: Set) {R x y: Set}, R ∈ equivalence_relations a → x ∈ a → y ∈ a → x ⟪R⟫ y → ⟦R, x⟧ = ⟦R, y⟧ := by
+  intro a R x y HR Hx Hy Hxy; rewrite [law_of_equivalence_class_eq a R x y]; repeat trivial
+theorem equivalence_class_eq_elim: ∀ (a: Set) {R x y: Set}, R ∈ equivalence_relations a → x ∈ a → y ∈ a → ⟦R, x⟧ = ⟦R, y⟧ → x ⟪R⟫ y := by
+  intro a R x y HR Hx Hy Hxy; rewrite [← law_of_equivalence_class_eq a R x y]; repeat trivial
+
+/- Mappings -/
+noncomputable def mapset (a b: Set) := separate (𝒫 (a × b)) (λ R => ∀ x, x ∈ a → (∃ y, y ∈ b ∧ ⟦R, x⟧ = ⦃y⦄))
+notation:114 a:115 "⟶" b: 115  => mapset a b
+noncomputable def map_eval (f x: Set) := ⋃ ⟦f, x⟧
+notation:113 f:114 "⸨" x: 114 "⸩"  => map_eval f x
+theorem map_eval_in_codomain: ∀ (f a b x), f ∈ a ⟶ b → x ∈ a → f⸨x⸩ ∈ b := by
+  intro f a b x Hf Hx; unfold map_eval; unfold mapset at Hf
+  let ⟨Hf1, Hf2⟩ := in_separate_elim Hf; let ⟨y, Hy1, Hy2⟩ := Hf2 x Hx
+  rewrite [Hy2]; rewrite [law_of_unionset_singleset]; trivial
+theorem map_eval_in_map: ∀ (f a b x), f ∈ a ⟶ b → x ∈ a → x ⟪f⟫ (f⸨x⸩) := by
+  intro f a b x Hf Hx; apply relation_intro; unfold mapset at Hf
+  let ⟨Hf1, Hf2⟩ := in_separate_elim Hf; let ⟨y, Hy1, Hy2⟩ := Hf2 x Hx
+  unfold map_eval; rewrite [Hy2]; rewrite [law_of_unionset_singleset]
+  let Hy3 := set_eq_elim Hy2 y; simp [law_of_singleset] at Hy3
+  let Hy4 := in_relation_class_elim Hy3; unfold in_relation at Hy4; trivial
+theorem law_of_map_eval: ∀ (f a b x y), f ∈ a ⟶ b → x ∈ a → (f⸨x⸩ = y ↔ x ⟪f⟫ y) := by
+  intro f a b x y Hf Hx; apply Iff.intro
+  . intro Hfx; rewrite [← Hfx]; apply map_eval_in_map f a b x Hf Hx
+  . intro Hxy; let Hr := in_relation_class_intro Hxy
+    let Ht := map_eval_in_map f a b x Hf Hx; let Hxfx := in_relation_class_intro Ht
+    unfold mapset at Hf; let ⟨Hf1, Hf2⟩ := in_separate_elim Hf;
+    let ⟨k, Hk1, Hk2⟩ := Hf2 x Hx
+    rewrite [Hk2] at Hr Hxfx; let Hr1 := in_singleset_elim Hr; let Hxfx1 := in_singleset_elim Hxfx
+    simp [Hxfx1, Hr1]
 
 end SetTheory

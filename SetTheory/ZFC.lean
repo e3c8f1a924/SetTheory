@@ -127,6 +127,14 @@ theorem singleset_eq_elim: ∀ {x y: Set}, ⦃x⦄ = ⦃y⦄ → x = y := by
   rewrite [law_of_singleset] at H1
   rewrite [law_of_singleset] at H1
   rewrite [← H1]; trivial
+theorem law_of_unionset_singleset: ∀ (x: Set), ⋃ ⦃x⦄ = x := by
+  intro x; apply set_eq_intro; intro z;
+  rewrite [law_of_unionset]; apply Iff.intro
+  . intro ⟨y, Hy1, Hy2⟩; let Hy3 := in_singleset_elim Hy1;
+    rewrite [← Hy3]; trivial
+  . intro Hz; exists x; apply And.intro
+    . apply in_singleset_intro; trivial
+    . trivial
 
 /- Unordered Pairs -/
 noncomputable def unordered_pair (x: Set) (y: Set) := transform (𝒫 ⦃x⦄) (λ (z: Set) => if z = ∅ then y else x)

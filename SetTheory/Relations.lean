@@ -131,10 +131,10 @@ theorem equivalence_class_eq_elim: ∀ (a: Set) {R x y: Set}, R ∈ equivalence_
 /- Mappings -/
 noncomputable def is_map (a f: Set) := ∀ x, x ∈ a → (∃ y, ⟦f, x⟧ = ⦃y⦄)
 noncomputable def mapset (a b: Set) := separate (𝒫 (a × b)) (λ R => is_map a R)
-notation:114 a:115 "⟶" b: 115  => mapset a b
+notation:114 a:115 "↪" b: 115  => mapset a b
 noncomputable def map_eval (f x: Set) := ⋃ ⟦f, x⟧
 notation:113 f:114 "⸨" x: 114 "⸩"  => map_eval f x
-theorem map_eval_in_codomain: ∀ (f a b x), f ∈ a ⟶ b → x ∈ a → f⸨x⸩ ∈ b := by
+theorem map_eval_in_codomain: ∀ (f a b x), f ∈ a ↪ b → x ∈ a → f⸨x⸩ ∈ b := by
   intro f a b x Hf Hx; unfold map_eval; unfold mapset at Hf
   let ⟨Hf1, Hf2⟩ := in_separate_elim Hf; let ⟨y, Hy2⟩ := Hf2 x Hx
   rewrite [Hy2]; rewrite [law_of_unionset_singleset]
@@ -142,13 +142,13 @@ theorem map_eval_in_codomain: ∀ (f a b x), f ∈ a ⟶ b → x ∈ a → f⸨x
   unfold in_relation at Hy3; let Hf3 := in_powerset_elim Hf1
   let Hy4 := Hf3 _ Hy3; let Hy5 := pair_in_cartesian_product_elim Hy4;
   apply Hy5.right
-theorem map_eval_in_map: ∀ (f a b x), f ∈ a ⟶ b → x ∈ a → x ⟪f⟫ (f⸨x⸩) := by
+theorem map_eval_in_map: ∀ (f a b x), f ∈ a ↪ b → x ∈ a → x ⟪f⟫ (f⸨x⸩) := by
   intro f a b x Hf Hx; apply relation_intro; unfold mapset at Hf
   let ⟨Hf1, Hf2⟩ := in_separate_elim Hf; let ⟨y, Hy2⟩ := Hf2 x Hx
   unfold map_eval; rewrite [Hy2]; rewrite [law_of_unionset_singleset]
   let Hy3 := set_eq_elim Hy2 y; simp [law_of_singleset] at Hy3
   let Hy4 := in_relation_class_elim Hy3; unfold in_relation at Hy4; trivial
-theorem law_of_map_eval: ∀ (f a b x y), f ∈ a ⟶ b → x ∈ a → (f⸨x⸩ = y ↔ x ⟪f⟫ y) := by
+theorem law_of_map_eval: ∀ (f a b x y), f ∈ a ↪ b → x ∈ a → (f⸨x⸩ = y ↔ x ⟪f⟫ y) := by
   intro f a b x y Hf Hx; apply Iff.intro
   . intro Hfx; rewrite [← Hfx]; apply map_eval_in_map f a b x Hf Hx
   . intro Hxy; let Hr := in_relation_class_intro Hxy
@@ -168,7 +168,7 @@ theorem map_constructor_is_map: ∀ (a: Set) (F: Set → Set), is_map a (map_con
   . intro Hz; rewrite [Hz]; apply in_transform_intro x; repeat trivial
 
 /- Operations -/
-noncomputable def operation_set (a b c: Set) := (a × b) ⟶ c
+noncomputable def operation_set (a b c: Set) := (a × b) ↪ c
 notation:112 a:113 "⟦" o: 113 "⟧" b:113 => o⸨(⸨a, b⸩)⸩
 
 end SetTheory

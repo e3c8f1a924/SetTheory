@@ -181,6 +181,10 @@ theorem in_union_elim: ∀ {x y z: Set}, z ∈ x ∪ y → z ∈ x ∨ z ∈ y :
 /- Axiom of Infinity -/
 noncomputable def set_succ (x: Set) := x ∪ ⦃x⦄
 notation:125 sth:126 "⁺" => set_succ sth
+theorem in_succ: ∀ (x: Set), x ∈ x⁺ := by
+  unfold set_succ; intro x; apply in_union_intro; right; apply in_singleset_intro; trivial
+theorem sube_succ: ∀ (x: Set), x ⊆ x⁺ := by
+  intro x y Hy; unfold set_succ; apply in_union_intro; left; trivial
 noncomputable def set_inductive (x: Set) := ∅ ∈ x ∧ ∀ y: Set, y ∈ x → y⁺ ∈ x
 axiom infinity_set_instance: Set
 axiom axiom_of_infinity: set_inductive infinity_set_instance
@@ -306,5 +310,16 @@ theorem in_intersect_intro: ∀ {a b c: Set}, c ∈ a → c ∈ b → c ∈ a �
   intro a b c Ha Hb; simp [law_of_intersect, Ha, Hb]
 theorem in_intersect_elim: ∀ {a b c: Set}, c ∈ a ∩ b → c ∈ a ∧ c ∈ b := by
   intro a b c H; rewrite [← law_of_intersect]; trivial
+
+/- Axiom of Regularity -/
+axiom axiom_of_regularity: ∀ x: Set, x ≠ ∅ → ∃ y: Set, y ∈ x ∧ y ∩ x = ∅
+theorem not_in_self: ∀ x: Set, x ∉ x := by
+  intro x Hx; let y := ⦃x⦄; let Hy: y ≠ ∅ := by
+    intro Hy; apply law_of_emptyset x; rewrite [← Hy]; unfold y; apply in_singleset_intro; trivial
+  let ⟨z, Hz1, Hz2⟩ := axiom_of_regularity y Hy
+  unfold y at Hz1; let Hz3 := in_singleset_elim Hz1; rewrite [Hz3] at Hz2; unfold y at Hz2
+  apply law_of_emptyset x; rewrite [← Hz2]; apply in_intersect_intro
+  . trivial
+  . apply in_singleset_intro; trivial
 
 end SetTheory

@@ -166,6 +166,56 @@ theorem map_constructor_is_map: ∀ (a: Set) (F: Set → Set), is_map a (map_con
   . intro H; let ⟨k, Hk1, Hk2⟩ := in_transform_elim H
     let ⟨Hk3, Hk4⟩ := pair_eq_elim Hk2; rewrite [Hk3] at Hk4; rewrite [Hk4]; trivial
   . intro Hz; rewrite [Hz]; apply in_transform_intro x; repeat trivial
+noncomputable def map_constructor_range (a: Set) (F: Set → Set) := transform a (λ t => F t)
+theorem map_constructor_in_mapset: ∀ (a: Set) (F: Set → Set), (map_constructor a F) ∈ a ↪ (map_constructor_range a F) := by
+  intro a F;
+  unfold mapset; apply in_separate_intro
+  . apply in_powerset_intro; intro t Ht; unfold map_constructor at Ht; let ⟨z, Hz1, Hz2⟩ := in_transform_elim Ht
+    rewrite [← Hz2]; apply pair_in_cartesian_product_intro
+    . trivial
+    . apply in_transform_intro z; repeat trivial
+  . apply map_constructor_is_map
+theorem law_of_map_constructor_eval: ∀ (a: Set) (F: Set → Set), ∀ (x: Set), x ∈ a → (map_constructor a F) ⸨x⸩ = F x := by
+  intro a F x Hx; let Ht := law_of_map_eval _ _ _ x (F x) (map_constructor_in_mapset a F) Hx
+  rewrite [Ht]; unfold in_relation; unfold map_constructor; apply in_transform_intro x
+  . trivial
+  . trivial
+theorem map_eq_intro: ∀ {f g a b: Set}, f ∈ a ↪ b → g ∈ a ↪ b → (∀ (x: Set), x ∈ a → f⸨x⸩ = g⸨x⸩) → f = g := by
+  intro f g a b Hf Hg He; apply set_eq_intro; intro z;
+  let Hfc := in_powerset_elim (in_separate_elim Hf).left z
+  let Hgc := in_powerset_elim (in_separate_elim Hg).left z
+  apply Iff.intro
+  . intro Hzf; let ⟨x, y, Hx, Hy, Hz⟩ := in_cartesian_product_elim (Hfc Hzf)
+    rewrite [Hz]; rewrite [Hz] at Hzf
+    let Hfx: f⸨x⸩ = y := by
+      rewrite [law_of_map_eval f a b x y Hf Hx]
+      unfold in_relation; trivial
+    let Hex := He x Hx; rewrite [Hfx] at Hex; apply relation_elim
+    rewrite [← law_of_map_eval g a b x y Hg Hx]; apply Eq.symm; trivial
+  . intro Hzg; let ⟨x, y, Hx, Hy, Hz⟩ := in_cartesian_product_elim (Hgc Hzg)
+    rewrite [Hz]; rewrite [Hz] at Hzg
+    let Hgx: g⸨x⸩ = y := by
+      rewrite [law_of_map_eval g a b x y Hg Hx]
+      unfold in_relation; trivial
+    let Hex := He x Hx; rewrite [Hgx] at Hex; apply relation_elim
+    rewrite [← law_of_map_eval f a b x y Hf Hx]; trivial
+theorem in_map_elim: ∀ {f a b t: Set}, f ∈ a ↪ b → t ∈ f → ∃ x: Set, x ∈ a ∧ t = ⸨x, (f⸨x⸩)⸩ := by
+  intro f a b t Hf Ht; unfold mapset at Hf
+  let ⟨Hf1, Hf2⟩ := in_separate_elim Hf
+  rewrite [law_of_powerset] at Hf1;
+  let H2 := Hf1 _ Ht
+  let ⟨α, β, Hα, Hβ, Hαβ⟩ := in_cartesian_product_elim H2
+  exists α; apply And.intro
+  . trivial
+  . rewrite [Hαβ]; apply pair_eq_intro
+    . trivial
+    . rewrite [Hαβ] at Ht
+      apply Eq.symm
+      rewrite [law_of_map_eval _ _ _ _ _ Hf Hα]
+      apply Ht
+theorem in_map_intro: ∀ {f a b t x: Set}, f ∈ a ↪ b → x ∈ a → t = ⸨x, (f⸨x⸩)⸩ → t ∈ f := by
+  intro f a b t x Hf Hx Ht; rewrite [Ht]
+  apply map_eval_in_map _ _ _ _ Hf Hx
 
 /- Operations -/
 noncomputable def operation_set (a b c: Set) := (a × b) ↪ c

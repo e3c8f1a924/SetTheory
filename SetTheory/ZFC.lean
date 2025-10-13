@@ -94,6 +94,8 @@ theorem set_ne_elim: ∀ {x: Set}, x ≠ ∅ → ∃ y, y ∈ x := by
   apply Iff.intro
   . intro Hz; exfalso; apply (H' z); trivial
   . intro Hz; exfalso; apply (law_of_emptyset z); trivial
+theorem set_ne_intro: ∀ {x y: Set}, x ∈ y → y ≠ ∅ := by
+  intro x y H1 H2; apply law_of_emptyset x; rewrite [H2] at H1; trivial
 
 /- Single Sets -/
 noncomputable def single (x: Set) := separate (𝒫 x) (λ y => y = x)
@@ -135,6 +137,14 @@ theorem law_of_unionset_singleset: ∀ (x: Set), ⋃ ⦃x⦄ = x := by
   . intro Hz; exists x; apply And.intro
     . apply in_singleset_intro; trivial
     . trivial
+theorem unionset_separate_single_elim: ∀ {x: Set} {f: Set → Prop}, (∃ (y: Set), separate x f = ⦃y⦄) → (⋃ separate x f) ∈ x ∧ f (⋃ separate x f) := by
+  intro x f ⟨y, Hy⟩; apply And.intro;
+  . rewrite [Hy]; rewrite [law_of_unionset_singleset]
+    let H1 := set_eq_elim Hy y; simp [law_of_singleset] at H1
+    apply (in_separate_elim H1).left
+  . rewrite [Hy]; rewrite [law_of_unionset_singleset]
+    let H1 := set_eq_elim Hy y; simp [law_of_singleset] at H1
+    apply (in_separate_elim H1).right
 
 /- Unordered Pairs -/
 noncomputable def unordered_pair (x: Set) (y: Set) := transform (𝒫 ⦃x⦄) (λ (z: Set) => if z = ∅ then y else x)

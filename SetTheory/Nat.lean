@@ -189,12 +189,12 @@ theorem nat_sube_in_succ: ∀ {x y: Set}, x ∈ ω → y ∈ ω → x ⊆ y → 
       exfalso; apply not_in_self (y⁺); trivial
 noncomputable def map_recursive (z t f: Set) :=
   (f ⸨∅⸩ = z) ∧
-  (∀ x: Set, x ∈ ω → f ⸨x⁺⸩ = t ⸨(⸨x, (f ⸨x⸩)⸩)⸩)
+  (∀ x: Set, x ∈ ω → f ⸨x⁺⸩ = t ⸨(f ⸨x⸩)⸩)
 noncomputable def partially_recursive (A z t f: Set) := (f ⸨∅⸩ = z) ∧
-    (∀ x: Set, x ∈ A → (x⁺ ∈ A) → f ⸨x⁺⸩ = t ⸨(⸨x, (f ⸨x⸩)⸩)⸩)
+    (∀ x: Set, x ∈ A → (x⁺ ∈ A) → f ⸨x⁺⸩ = t ⸨(f ⸨x⸩)⸩)
 noncomputable def partially_recursive_map_constructor (B z t x: Set) := ⋃ separate (x⁺ ↪ B) (partially_recursive (x⁺) z t)
 noncomputable def recursive_map_constructor (B z t: Set) := ⋃ transform ω (λ x => partially_recursive_map_constructor B z t x)
-theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ ω × B ↪ B → recursive_map_constructor B z t ∈ ω ↪ B ∧ map_recursive z t (recursive_map_constructor B z t) := by
+theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ B ↪ B → recursive_map_constructor B z t ∈ ω ↪ B ∧ map_recursive z t (recursive_map_constructor B z t) := by
   intro B z t Hz Ht;
   let exists_partially_recursive_map: ∀ (x: Set), x ∈ ω → ∃ f, f ∈ separate (x⁺ ↪ B) (partially_recursive (x⁺) z t) := by
     apply by_mathematical_induction_on_ω
@@ -219,9 +219,9 @@ theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ ω × B ↪ B 
         . intro x; rewrite [law_of_binary_union]; rewrite [law_of_singleset]; simp [law_of_emptyset]
           intro Hx; rewrite [Hx]; unfold set_succ; rewrite [law_of_binary_union]; simp [law_of_emptyset]
           rewrite [law_of_singleset]; intro H1; let H2 := (set_eq_elim H1 ∅); simp [law_of_binary_union, law_of_singleset, law_of_emptyset] at H2
-    . intro x Hx ⟨g', Hg'⟩; let g := g' ∪ ⦃(⸨(x⁺), (t ⸨(⸨x, (g' ⸨x⸩)⸩)⸩)⸩)⦄
+    . intro x Hx ⟨g', Hg'⟩; let g := g' ∪ ⦃(⸨(x⁺), (t ⸨((g' ⸨x⸩))⸩)⸩)⦄
       exists g; unfold g
-      let Hmap: (g' ∪ ⦃(⸨(x⁺), (t⸨⸨x, (g'⸨x⸩)⸩⸩)⸩)⦄) ∈ (x⁺)⁺ ↪ B := by
+      let Hmap: (g' ∪ ⦃(⸨(x⁺), (t⸨(g'⸨x⸩)⸩)⸩)⦄) ∈ (x⁺)⁺ ↪ B := by
         unfold mapset; apply in_separate_intro; apply in_powerset_intro
         intro k; rewrite [law_of_binary_union]; intro H'; apply Or.elim H'
         . intro Hk; let Hg'1 := (in_separate_elim Hg').left; unfold mapset at Hg'1
@@ -232,14 +232,12 @@ theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ ω × B ↪ B 
         . rewrite [law_of_singleset]; intro Hk; rewrite [Hk]
           apply pair_in_cartesian_product_intro
           . apply in_succ
-          . apply map_eval_in_codomain t (ω × B) B
+          . apply map_eval_in_codomain t B B
             . trivial
-            . apply pair_in_cartesian_product_intro
+            . let Hg'1 := (in_separate_elim Hg').left
+              apply map_eval_in_codomain g' (x⁺) B
               . trivial
-              . let Hg'1 := (in_separate_elim Hg').left
-                apply map_eval_in_codomain g' (x⁺) B
-                . trivial
-                . simp [in_succ]
+              . simp [in_succ]
         . unfold is_map; intro k Hk; unfold set_succ at Hk
           apply Or.elim (in_union_elim Hk)
           . intro Hk1; apply Or.elim (in_union_elim Hk1)
@@ -269,7 +267,7 @@ theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ ω × B ↪ B 
                 let Hg'1 := (in_separate_elim Hg').left; let H2 := map_eval_in_map g' (x⁺) B x Hg'1 (in_succ x)
                 apply H2
           . rewrite [law_of_singleset]; intro Hk2; rewrite [Hk2]
-            exists (t ⸨(⸨x, (g' ⸨x⸩)⸩)⸩); apply set_eq_intro
+            exists (t ⸨((g' ⸨x⸩))⸩); apply set_eq_intro
             intro α; rewrite [law_of_relation_class]; rewrite [law_of_singleset]
             apply Iff.intro
             . intro H1; apply Or.elim (in_union_elim H1)
@@ -288,15 +286,16 @@ theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ ω × B ↪ B 
         apply And.intro
         . let Hx'' := emptyset_in_nat_succ (nat_succ_is_nat Hx)
           let Hx' := emptyset_in_nat_succ Hx
-          rewrite [law_of_map_eval (g' ∪ ⦃(⸨(x⁺), (t⸨⸨x, (g'⸨x⸩)⸩⸩)⸩)⦄) ((x⁺)⁺) B ∅ z Hmap Hx''];
+          rewrite [law_of_map_eval (g' ∪ ⦃(⸨(x⁺), (t⸨(g'⸨x⸩)⸩)⸩)⦄) ((x⁺)⁺) B ∅ z Hmap Hx''];
           apply in_union_intro; left; let Ht := law_of_map_eval g' (x⁺) B ∅ z Hmg' Hx'; unfold in_relation at Ht
           rewrite [← Ht]; apply Hprg'.left
-        . intro k Hk Hk'; rewrite [law_of_map_eval (g' ∪ ⦃(⸨(x⁺), (t⸨⸨x, (g'⸨x⸩)⸩⸩)⸩)⦄) ((x⁺)⁺) B (k⁺) (t⸨⸨ k,((g'∪⦃ (⸨ (x⁺),(t⸨⸨ x,(g'⸨x⸩) ⸩⸩) ⸩) ⦄)⸨k⸩) ⸩⸩) Hmap Hk']
+        . intro k Hk Hk';
+          rewrite [law_of_map_eval (g' ∪ ⦃(⸨(x⁺), (t⸨(g'⸨x⸩)⸩)⸩)⦄) ((x⁺)⁺) B (k⁺) (t⸨((g'∪⦃ (⸨ (x⁺),(t⸨(g'⸨x⸩) ⸩) ⸩) ⦄)⸨k⸩) ⸩) Hmap Hk']
           apply in_union_intro
           apply Or.elim (in_union_elim Hk')
           . intro Hk''; left; apply Or.elim (in_union_elim Hk)
-            . intro Hk1; let H1: (g'∪⦃ (⸨ (x⁺),(t⸨⸨ x,(g'⸨x⸩) ⸩⸩) ⸩) ⦄)⸨k⸩ = g'⸨k⸩ := by
-                rewrite [law_of_map_eval (g' ∪ ⦃(⸨(x⁺), (t⸨⸨x, (g'⸨x⸩)⸩⸩)⸩)⦄) ((x⁺)⁺) B _ _ Hmap Hk]
+            . intro Hk1; let H1: (g'∪⦃ (⸨ (x⁺),(t⸨(g'⸨x⸩) ⸩) ⸩) ⦄)⸨k⸩ = g'⸨k⸩ := by
+                rewrite [law_of_map_eval (g' ∪ ⦃(⸨(x⁺), (t⸨(g'⸨x⸩)⸩)⸩)⦄) ((x⁺)⁺) B _ _ Hmap Hk]
                 apply in_union_intro; left; let T := law_of_map_eval g' (x⁺) B k (g'⸨k⸩) Hmg' Hk1
                 simp at T; unfold in_relation at T; trivial
               rewrite [H1]; let H2 := Hprg'.right k Hk1 Hk'';
@@ -305,7 +304,7 @@ theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ ω × B ↪ B 
           . rewrite [law_of_singleset]; intro Hk1; rewrite [Hk1]; right; rewrite [law_of_singleset]
             apply pair_eq_intro; simp; let Hkn := in_ω_subset _ (nat_succ_is_nat (nat_succ_is_nat Hx)) k Hk
             let Hk2 := nat_succ_eq_elim Hkn Hx Hk1
-            rewrite [Hk2]; let HT: ((g'∪⦃ (⸨ (x⁺),(t⸨⸨ x,(g'⸨x⸩) ⸩⸩) ⸩) ⦄)⸨x⸩) = g'⸨x⸩ := by
+            rewrite [Hk2]; let HT: ((g'∪⦃ (⸨ (x⁺),(t⸨(g'⸨x⸩) ⸩) ⸩) ⦄)⸨x⸩) = g'⸨x⸩ := by
               rewrite [law_of_map_eval _ _ _ _ _ Hmap (sube_succ (x⁺) x (in_succ x))]
               apply in_union_intro; left; let T := law_of_map_eval g' (x⁺) B x (g'⸨x⸩) Hmg' (in_succ x);
               simp at T; unfold in_relation at T; trivial
@@ -486,7 +485,7 @@ theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ ω × B ↪ B 
             . trivial
           . let H1 := map_eval_in_map _ _ _ x (partially_recursive_map_constructor_in_mapset (x⁺) (nat_succ_is_nat Hx)) ((sube_succ (x⁺)) _ (in_succ x))
             unfold in_relation at H1; trivial
-        rewrite [H1]; let HT := law_of_map_eval _ _ _ (x⁺) (t⸨⸨ x,(partially_recursive_map_constructor B z t (x⁺)⸨x⸩) ⸩⸩) (partially_recursive_map_constructor_in_mapset (x⁺) (nat_succ_is_nat Hx)) (in_succ (x⁺))
+        rewrite [H1]; let HT := law_of_map_eval _ _ _ (x⁺) (t⸨(partially_recursive_map_constructor B z t (x⁺)⸨x⸩) ⸩) (partially_recursive_map_constructor_in_mapset (x⁺) (nat_succ_is_nat Hx)) (in_succ (x⁺))
         unfold in_relation at HT;
         rewrite [← HT]
         let HT1 := (partially_recursive_map_constructor_partially_recursive (x⁺) (nat_succ_is_nat Hx)).right x ((sube_succ (x⁺)) _ (in_succ x)) (in_succ (x⁺))

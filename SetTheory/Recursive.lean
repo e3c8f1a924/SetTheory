@@ -5,6 +5,8 @@ import SetTheory.Omega
 namespace SetTheory
 namespace Omega
 
+open Classical
+
 /- Recursive Maps -/
 noncomputable def map_recursive (z t f: Set) :=
   (f ⸨∅⸩ = z) ∧
@@ -310,5 +312,5 @@ theorem law_of_recursive_map: ∀ (B z t: Set), z ∈ B → t ∈ B ↪ B → re
         let HT1 := (partially_recursive_map_constructor_partially_recursive (x⁺) (nat_succ_is_nat Hx)).right x ((sube_succ (x⁺)) _ (in_succ x)) (in_succ (x⁺))
         trivial
 
-
-open Classical
+end Omega
+end SetTheory

@@ -219,6 +219,7 @@ theorem in_map_intro: ∀ {f a b t x: Set}, f ∈ a ↪ b → x ∈ a → t = �
 
 /- Operations -/
 noncomputable def operation_set (a b c: Set) := (a × b) ↪ c
-notation:112 a:113 "⟦" o: 113 "⟧" b:113 => o⸨(⸨a, b⸩)⸩
+noncomputable def operation_eval (o a b: Set) := o⸨(⸨a, b⸩)⸩
+notation:112 a:113 "⟦" o: 113 "⟧" b:113 => operation_eval o a b
 
 end SetTheory

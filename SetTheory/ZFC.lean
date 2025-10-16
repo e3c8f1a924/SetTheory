@@ -332,4 +332,11 @@ theorem not_in_self: ∀ x: Set, x ∉ x := by
   . trivial
   . apply in_singleset_intro; trivial
 
+/- Axiom of Choice -/
+/- (can be obtained from the classical logic module of Lean) -/
+/- (an equivalent form) -/
+noncomputable def set_choose {x: Set} (P: x ≠ ∅) := choose (set_ne_elim P)
+theorem law_of_set_choose {x: Set} (P: x ≠ ∅): (set_choose P) ∈ x := by
+  unfold set_choose; exact choose_spec (set_ne_elim P)
+
 end SetTheory

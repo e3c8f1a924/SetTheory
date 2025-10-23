@@ -54,10 +54,15 @@ theorem relation_constructor_intro: ∀ {a b: Set} {f: Set → Set → Prop} {x 
 theorem relation_constructor_elim: ∀ {a b: Set} {f: Set → Set → Prop} {x y: Set}, x ⟪relation_constructor a b f⟫ y → x ∈ a ∧ y ∈ b ∧ f x y := by
   intro a b f x y H; rewrite [← law_of_relation_constructor]; trivial
 
-/- Equivalence Relations -/
+/- Some Properties of Relations -/
+noncomputable def relation_antisymm (R: Set) := ∀ (x y: Set), x ⟪R⟫ y → y ⟪R⟫ x → x = y
+noncomputable def relation_conn (a R: Set) := ∀ (x y: Set), x ∈ a → y ∈ a → x ⟪R⟫ y ∨ y ⟪R⟫ x
 noncomputable def relation_refl (a: Set) (R: Set) := ∀ x: Set, x ∈ a → x ⟪R⟫ x
 noncomputable def relation_symm (R: Set) := ∀ (x y: Set), x ⟪R⟫ y → y ⟪R⟫ x
 noncomputable def relation_trans (R: Set) := ∀ (x y z: Set), x ⟪R⟫ y → y ⟪R⟫ z → x ⟪R⟫ z
+noncomputable def relation_well_founded (a R: Set) := ∀ S: Set, S ⊆ a → ∃ y, y ∈ S ∧ (∀ z, z ∈ S → ¬ z ⟪R⟫ y)
+
+/- Equivalence Relations -/
 noncomputable def equivalence_relations (a: Set) := separate (𝒫 (a × a)) (λ x: Set => (relation_refl a x) ∧ relation_symm x ∧ relation_trans x)
 theorem law_of_equivalence_relations: ∀ (a R: Set), R ∈ equivalence_relations a ↔ R ∈ 𝒫 (a × a) ∧ relation_refl a R ∧ relation_symm R ∧ relation_trans R := by
   intro a R; unfold equivalence_relations; rewrite [law_of_separate]; trivial
